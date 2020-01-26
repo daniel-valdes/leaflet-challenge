@@ -1,12 +1,23 @@
 // Last 7 days global earthquake data API Request
 var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
+var plate_url = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
+
 d3.json(url, function(data) {
     // Once we get a response, send the data.features object to the createFeatures function
     createFeatures(data);
+    
 });
 
-function createFeatures (earthquakeData) {
+// d3.json(plate_url, function(data) {
+
+//     var plates = L.geoJSON(data)
+
+//     createMap(plates)
+
+// });
+
+function createFeatures (data) {
 
     function onEachFeature(feature, layer) {
 
@@ -20,24 +31,25 @@ function createFeatures (earthquakeData) {
 
         return {
             radius: feature.properties.mag * 6,
-            fillColor: "#ff7800",
-            color: "#000",
+            fillColor: getColor(feature.properties.mag),
+            color: "black",
             opacity: 1,
             fillOpacity: 0.8
         }
         
-        function colorFunc(feature) {
-            if (feature.properties.mag > 5) {
-                return "Red"
-            }
-            else {
-                return "#ff7800"
-            }
+        function getColor(d) {
+            return d > 5 ? '#DC143C' :
+                d > 4 ? '#f0936b' :
+                d > 3 ? '#f3ba4e' :
+                d > 2 ? '#f3db4c' :
+                d > 1 ? '#e1f34c' :
+                        '#b7f34d';
         }
+    
     };
 
 
-    var earthquakes = L.geoJSON(earthquakeData, {
+    var earthquakes = L.geoJSON(data, {
         onEachFeature: onEachFeature,
         pointToLayer: function(feature, latlng) {
             return L.circleMarker(latlng)
@@ -72,13 +84,14 @@ function createMap(earthquakes) {
 
     // Marker layer
     var overlayMaps = {
-        Earthquakes: earthquakes
+        Earthquakes: earthquakes,
+        // Plates: plates
     }
 
     // Create initial map object
     var myMap = L.map("map", {
         center: [37.964,-98.8318],
-        zoom: 5,
+        zoom: 3.5,
         layers: [satellite, earthquakes]
     });
         
